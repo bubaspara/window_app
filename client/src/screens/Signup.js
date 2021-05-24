@@ -1,84 +1,92 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import {
   Flex,
   Box,
   Heading,
   FormControl,
   FormLabel,
-  Input,
   Button,
-  Alert,
 } from "@chakra-ui/react";
+import { Formik, Field, Form } from "formik";
+import * as Yup from "yup";
 import { Link } from "react-router-dom";
+import { useHistory } from "react-router";
 
 export default function SignUp() {
-  const emailRef = useRef();
-  const passRef = useRef();
-  const passConfRef = useRef();
+  const history = useHistory();
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (passRef.current.value !== passConfRef.current.value) {
-      return setError(`Passwords do not match`);
-    }
-
-    try {
-      setError("");
-      setLoading(true);
-    } catch {
-      setError(`Failed to create an account`);
-    }
-    setLoading(false);
+  const initialValues = {
+    name: "",
+    password: "",
   };
+
+  const validationSchema = Yup.object().shape({
+    name: Yup.string().required("Name is required"),
+    password: Yup.string().required("Password is required"),
+  });
+
+  const onSubmit = async (data) => {
+    console.log(JSON.stringify(data));
+    setLoading(true);
+    await fetch("http://localhost:3001/auth/register", {
+      method: "POST",
+      credentials: "include",
+      mode: "cors",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Credentials": true,
+      },
+    })
+      .then((res) => {
+        setLoading(false);
+        history.push("/");
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const [loading, setLoading] = React.useState(false);
+
   return (
-    <Flex width="full" height="100vh" align="center" justifyContent="center">
-      <Box p={2}>
-        <Box textAlign="center">
-          <Heading>Signup</Heading>
-        </Box>
-        <form onSubmit={handleSubmit}>
-          {error && <Alert status="error">{error}</Alert>}
-          <Box my={4} textAlign="left">
-            <FormControl>
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                ref={emailRef}
-                placeholder="email@email.com"
-                required
-              />
-            </FormControl>
-            <FormControl mt={6}>
-              <FormLabel>Password</FormLabel>
-              <Input
-                type="password"
-                ref={passRef}
-                placeholder="*******"
-                required
-              />
-            </FormControl>
-            <FormControl mt={6}>
-              <FormLabel>Confirm Password</FormLabel>
-              <Input
-                type="password"
-                ref={passConfRef}
-                placeholder="*******"
-                required
-              />
-            </FormControl>
-            <Button width="full" mt={4} type="submit" disabled={loading}>
-              Sign Up
-            </Button>
-            <p>
-              Already have an account? <Link to="login">Login!</Link>
-            </p>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={onSubmit}
+      validationSchema={validationSchema}
+    >
+      <Form>
+        <Flex
+          width="full"
+          height="100vh"
+          align="center"
+          justifyContent="center"
+        >
+          <Box p={2}>
+            <Box textAlign="center">
+              <Heading>Signup</Heading>
+            </Box>
+            <Box my={4} textAlign="left">
+              <FormControl>
+                <FormLabel>Username</FormLabel>
+                <Field name="name" placeholder="Username" />
+              </FormControl>
+
+              <FormControl mt={6}>
+                <FormLabel>Password</FormLabel>
+                <Field type="password" name="password" placeholder="******" />
+              </FormControl>
+
+              <Button width="full" mt={4} type="submit" disabled={loading}>
+                Sign Up
+              </Button>
+
+              <p>
+                Already have an account? <Link to="login">Login!</Link>
+              </p>
+            </Box>
           </Box>
-        </form>
-      </Box>
-    </Flex>
+        </Flex>
+      </Form>
+    </Formik>
   );
 }

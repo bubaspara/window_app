@@ -1,5 +1,10 @@
 import React from "react";
+import FeedList from "../components/FeedList";
 
 export default function Home() {
-  return <div>Home</div>;
+  return (
+    <div>
+      <FeedList />
+    </div>
+  );
 }
