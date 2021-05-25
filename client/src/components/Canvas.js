@@ -1,11 +1,6 @@
 import React from "react";
-import { useParams } from "react-router-dom";
-import { Flex } from "@chakra-ui/react";
-import { useContainerDimensions } from "../hooks/useContainerDimensions";
 
 export default function Canvas() {
-  const ref = React.useRef(null);
-  const { width, height } = useContainerDimensions(ref);
   const [x, setX] = React.useState(0);
   const [y, setY] = React.useState(0);
   const [startX, setStartX] = React.useState(0);
@@ -16,40 +11,70 @@ export default function Canvas() {
   const [initalClick, setInitialClick] = React.useState(false);
 
   const onMouseMove = (e) => {
-    setX(e.screenX);
-    setY(e.screenY);
+    setX(e.clientX);
+    setY(e.clientY);
   };
 
   React.useEffect(() => {
-    console.log(
-      `UseEffect X: ${startX}, Y: ${startY}, eX: ${endX}, eY: ${endY}, Width: ${Math.abs(
-        -startX + endX
-      )}, Height: ${Math.abs(-startY + endY)}`
-    );
-  }, [startX, startY]);
+    setStartX(0);
+    setStartY(0);
+    setEndX(0);
+    setEndY(0);
+  }, []);
 
   return (
     <div
-      ref={ref}
       id="root_container"
-      style={{ height: "100vh" }}
+      style={{ height: "100vh", position: "relative" }}
       onMouseDown={(e) => {
-        setStartX(e.screenX);
-        setStartY(e.screenY);
+        setStartX(e.clientX);
+        setStartY(e.clientY);
       }}
       onMouseUp={(e) => {
-        setEndX(e.screenX);
-        setEndY(e.screenY);
+        setEndX(e.clientX);
+        setEndY(e.clientY);
 
-        setWindows([
-          ...windows,
-          {
-            x: startY,
-            y: startX,
-            width: Math.abs(-startX + endX),
-            height: Math.abs(-startY + endY),
-          },
-        ]);
+        if (startX <= endX && startY <= endY) {
+          setWindows([
+            ...windows,
+            {
+              x: startX,
+              y: startY,
+              width: -startX + e.clientX,
+              height: -startY + e.clientY,
+            },
+          ]);
+        } else if (startX >= endX && startY <= endY) {
+          setWindows([
+            ...windows,
+            {
+              x: e.clientX,
+              y: startY,
+              width: startX - e.clientX,
+              height: -startY + e.clientY,
+            },
+          ]);
+        } else if (startX > endX && startY > endY) {
+          setWindows([
+            ...windows,
+            {
+              x: e.clientX,
+              y: e.clientY,
+              width: startX - e.clientX,
+              height: startY - e.clientY,
+            },
+          ]);
+        } else if (startX < endX && startY > endY) {
+          setWindows([
+            ...windows,
+            {
+              x: startX,
+              y: e.clientY,
+              width: -startX + e.clientX,
+              height: startY - e.clientY,
+            },
+          ]);
+        }
 
         console.log(
           `X: ${startX}, Y: ${startY}, eX: ${endX}, eY: ${endY}, Width: ${Math.abs(
@@ -62,14 +87,14 @@ export default function Canvas() {
       onMouseMove={onMouseMove}
     >
       {initalClick &&
-        windows.map((window) => (
+        windows.map((w) => (
           <div
             style={{
               position: "absolute",
-              top: `${window.y}px`,
-              left: `${window.x}px`,
-              width: `${window.width}px`,
-              height: `${window.height}px`,
+              top: `${w.y}px`,
+              left: `${w.x}px`,
+              width: `${w.width}px`,
+              height: `${w.height}px`,
               border: `1px solid black`,
             }}
           ></div>
