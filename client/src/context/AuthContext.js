@@ -9,8 +9,8 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [authState, setAuthState] = React.useState(false);
 
-  React.useEffect(() => {
-    fetch("http://localhost:3001/auth/validate", {
+  const validate = async () => {
+    await fetch("http://localhost:3001/auth/validate", {
       method: "GET",
       credentials: "include",
       mode: "cors",
@@ -26,6 +26,10 @@ export function AuthProvider({ children }) {
         setAuthState(false);
       }
     });
+  };
+
+  React.useEffect(() => {
+    // validate();
   }, []);
 
   const value = {
