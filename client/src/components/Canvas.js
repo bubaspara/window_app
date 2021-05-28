@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 
 export default function Canvas() {
+  // Window
   const [startX, setStartX] = React.useState();
   const [startY, setStartY] = React.useState();
   const [endX, setEndX] = React.useState();
@@ -23,9 +24,12 @@ export default function Canvas() {
 
   // Modal
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [link, setLink] = React.useState("");
 
   const thrEndX = useThrottle(endX, 200);
   const thrEndY = useThrottle(endY, 200);
+
+  //Window logic
 
   const onMouseMove = (e) => {
     // Border logic
@@ -60,6 +64,33 @@ export default function Canvas() {
     setStartY(undefined);
     setEndX(undefined);
     setEndY(undefined);
+  };
+
+  // Link logic
+
+  const handleSubmit = async (window) => {
+    let tempArray = windows;
+    let tempItem = tempArray.filter((el) => el.top === window.top);
+    console.log(tempItem);
+    await fetch("http://localhost:3001/window/createwindow", {
+      method: "POST",
+      mode: "cors",
+      credentials: "include",
+      body: JSON.stringify(tempItem),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Credentials": true,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.log(res);
+        } else {
+          onClose();
+        }
+      })
+      .catch((err) => console.error(err));
   };
 
   React.useEffect(() => {
@@ -113,6 +144,7 @@ export default function Canvas() {
             height: `${w.height}px`,
             border: `1.5px solid black`,
             borderRadius: "5%",
+            textAlign: "center",
           }}
         >
           <Button onClick={onOpen}>Add</Button>
@@ -130,7 +162,12 @@ export default function Canvas() {
                 <Button colorScheme="blue" mr={3} onClick={onClose}>
                   Close
                 </Button>
-                <Button colorScheme="green">Add</Button>
+                <Button
+                  colorScheme="green"
+                  onClick={() => handleSubmit(w, index)}
+                >
+                  Add
+                </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>

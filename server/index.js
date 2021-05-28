@@ -31,6 +31,9 @@ app.use("/auth", userRouter);
 const feedRouter = require("./routes/feeds");
 app.use("/feed", feedRouter);
 
+const windowRouter = require("./routes/windows");
+app.use("/window", windowRouter);
+
 db.sequelize
   .sync()
   .then(() => {
