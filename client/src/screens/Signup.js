@@ -26,7 +26,6 @@ export default function SignUp() {
   });
 
   const onSubmit = async (data) => {
-    console.log(JSON.stringify(data));
     setLoading(true);
     await fetch("http://localhost:3001/auth/register", {
       method: "POST",

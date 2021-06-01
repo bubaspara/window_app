@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Flex, Box, Button } from "@chakra-ui/react";
+import { Flex, Button } from "@chakra-ui/react";
 import Feed from "./Feed";
 
 export default function FeedList() {
@@ -20,7 +20,9 @@ export default function FeedList() {
         if (res.ok) {
           res
             .json()
-            .then((response) => setFeed(response))
+            .then((response) => {
+              setFeed(response);
+            })
             .catch((err) => console.error(err));
         }
       })

@@ -36,7 +36,6 @@ export default function Login() {
       },
     })
       .then((res) => {
-        console.log("Response", res);
         if (res.ok) {
           history.push("/");
           setAuthState(true);

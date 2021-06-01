@@ -11,7 +11,9 @@ import {
   Button,
   Input,
   useDisclosure,
+  Flex,
 } from "@chakra-ui/react";
+import { useParams } from "react-router-dom";
 
 export default function Canvas() {
   // Window
@@ -26,36 +28,68 @@ export default function Canvas() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [link, setLink] = React.useState("");
 
+  let { feedId } = useParams();
+
   const thrEndX = useThrottle(endX, 200);
   const thrEndY = useThrottle(endY, 200);
 
-  //Window logic
+  const [currentId, setCurrentId] = React.useState();
+
+  //**Window logic**
+
+  const getWindows = async () => {
+    await fetch("http://localhost:3001/window/windows", {
+      method: "POST",
+      credentials: "include",
+      mode: "cors",
+      body: JSON.stringify({ feedId: `${feedId}` }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Credentials": true,
+      },
+    })
+      .then((res) => {
+        if (res.ok) {
+          res
+            .json()
+            .then((results) => setWindows(results))
+            .catch((err) => console.error(err));
+        }
+      })
+      .catch((err) => console.error(err));
+  };
 
   const onMouseMove = (e) => {
-    // Border logic
     setEndX(e.clientX);
     setEndY(e.clientY);
   };
 
   // Overlapping logic
-  const checkIfTouching = (a, b) => {
-    // no horizontal overlap
-    if (a.left >= b.endX || b.left >= a.endX) return false;
+  const checkIfTouching = (a) => {
+    let tempArray = [...windows];
+    tempArray.forEach((window) => {
+      // no horizontal overlap
+      if (a.start_x_l >= window.endX || window.start_x_l >= a.endX)
+        return false;
 
-    // no vertical overlap
-    if (a.top >= b.endY || b.top >= a.endX) return false;
-
-    return true;
+      // no vertical overlap
+      if (a.start_y_l >= window.endY || window.start_y_l >= a.endX)
+        return false;
+      return true;
+    });
   };
 
-  function touches(a, b) {
-    // has horizontal gap
-    if (a.left > b.endX || b.left > a.endX) return false;
+  function touches(a) {
+    let tempArray = [...windows];
+    tempArray.forEach((window) => {
+      // has horizontal gap
+      if (a.start_x_l > window.endX || window.start_x_l > a.endX) return false;
 
-    // has vertical gap
-    if (a.top > b.endY || b.top > a.endY) return false;
-
-    return true;
+      // has vertical gap
+      if (a.start_y_l > window.endY || window.start_y_l > a.endX) return false;
+      return true;
+    });
   }
 
   // Reset
@@ -66,12 +100,14 @@ export default function Canvas() {
     setEndY(undefined);
   };
 
-  // Link logic
+  // **Modal Logic**
 
-  const handleSubmit = async (window) => {
+  const handleSubmit = async (id, e) => {
     let tempArray = windows;
-    let tempItem = tempArray.filter((el) => el.top === window.top);
+    let tempItem = tempArray.filter((el) => el.id === id);
     console.log(tempItem);
+    console.log(id);
+    tempItem[0].feedId = feedId;
     await fetch("http://localhost:3001/window/createwindow", {
       method: "POST",
       mode: "cors",
@@ -94,18 +130,19 @@ export default function Canvas() {
   };
 
   React.useEffect(() => {
-    // Creating new window
+    // Creating a new window
     if (endX !== undefined && endY !== undefined) {
       if (endX && endY) {
         setWindows((windows) => {
           const newWindows = [...windows];
-          // If there are no elements in the array at that index, add one (in case it would break)
+          // If there are no elements in the array at that index, add one (in case it breaks)
           if (!newWindows[currentWindowIndex]) newWindows.push({});
           newWindows[currentWindowIndex] = {
-            top: Math.min(startY, thrEndY),
-            left: Math.min(startX, thrEndX),
-            width: Math.abs(thrEndX - startX),
-            height: Math.abs(thrEndY - startY),
+            id: newWindows.length,
+            start_x_l: Math.min(startX, thrEndX),
+            start_y_l: Math.min(startY, thrEndY),
+            height_l: Math.abs(thrEndY - startY),
+            width_l: Math.abs(thrEndX - startX),
           };
           return newWindows;
         });
@@ -114,10 +151,15 @@ export default function Canvas() {
   }, [endX, endY, thrEndX, thrEndY, startY, startX, currentWindowIndex]);
 
   React.useEffect(() => {
-    // If clicked - addEventListener, else removeEventListener
+    // If clicked - addEventListener, on unmount remove the listener
     if (startX && startY) window.addEventListener("mousemove", onMouseMove);
     return () => window.removeEventListener("mousemove", onMouseMove);
   }, [startX, startY]);
+
+  React.useEffect(() => {
+    console.log("here");
+    getWindows();
+  }, []);
 
   return (
     <div
@@ -133,46 +175,56 @@ export default function Canvas() {
         setCurrentWindowIndex(undefined);
       }}
     >
-      {windows.map((w, index) => (
-        <div
-          key={index}
+      {windows.map((w) => (
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          id={`${w.id}`}
+          key={w.id}
           style={{
             position: "absolute",
-            top: `${w.top}px`,
-            left: `${w.left}px`,
-            width: `${w.width}px`,
-            height: `${w.height}px`,
+            top: `${w.start_y_l}px`,
+            left: `${w.start_x_l}px`,
+            width: `${w.width_l}px`,
+            height: `${w.height_l}px`,
             border: `1.5px solid black`,
             borderRadius: "5%",
             textAlign: "center",
           }}
         >
-          <Button onClick={onOpen}>Add</Button>
-
-          <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Add a link</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Input placeholder="Link" />
-              </ModalBody>
-
-              <ModalFooter>
-                <Button colorScheme="blue" mr={3} onClick={onClose}>
-                  Close
-                </Button>
-                <Button
-                  colorScheme="green"
-                  onClick={() => handleSubmit(w, index)}
-                >
-                  Add
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </div>
+          <Button
+            onClick={() => {
+              setCurrentId(w.id);
+              onOpen();
+            }}
+          >
+            Add
+          </Button>
+        </Flex>
       ))}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add a link</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="Link"
+              onChange={(e) => setLink(e.target.value)}
+            />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button colorScheme="green" onClick={() => handleSubmit(currentId)}>
+              Add
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

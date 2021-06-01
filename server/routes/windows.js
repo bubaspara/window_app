@@ -2,18 +2,30 @@ const express = require("express");
 const router = express.Router();
 const { window } = require("../models");
 
-router.post("/createwindow", async (req, res) => {
-  const { top, left, height, width } = req.body[0];
-  console.log(top, left, height, width);
-  //   const user = verify(req.body.cookie.split("=")[1], "secret");
+router.post("/windows", async (req, res) => {
+  console.log("FEED ID", req.body);
+  const { feedId } = req.body;
+  await window
+    .findAll({
+      raw: true,
+      where: {
+        feedId: feedId,
+      },
+    })
+    .then((result) => res.send(result))
+    .catch((err) => console.error(err));
+});
 
-  // Problem je naci feedId
+router.post("/createwindow", async (req, res) => {
+  const { start_x_l, start_y_l, height_l, width_l, feedId } = req.body[0];
+  //   const user = verify(req.body.cookie.split("=")[1], "secret");
   await window
     .create({
-      start_x_l: left,
-      start_y_l: top,
-      height_l: height,
-      width_l: width,
+      start_x_l: start_x_l,
+      start_y_l: start_y_l,
+      height_l: height_l,
+      width_l: width_l,
+      feedId: feedId,
     })
     .catch((err) => console.error(err));
   res.status(200).send("Window Added");

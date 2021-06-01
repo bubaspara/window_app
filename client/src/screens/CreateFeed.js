@@ -26,7 +26,6 @@ export default function CreateFeed() {
   });
 
   const onSubmit = async (data) => {
-    console.log("Cookie", document.cookie);
     await fetch("http://localhost:3001/feed/createfeed", {
       method: "POST",
       credentials: "include",
