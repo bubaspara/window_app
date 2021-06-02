@@ -12,6 +12,8 @@ import {
   Input,
   useDisclosure,
   Flex,
+  Box,
+  Spacer,
 } from "@chakra-ui/react";
 import { useParams } from "react-router-dom";
 
@@ -63,11 +65,16 @@ export default function Canvas() {
   const onMouseMove = (e) => {
     setEndX(e.clientX);
     setEndY(e.clientY);
+
+    // let tempWindows = [...windows];
+    // checkIfTouching(tempWindows[currentWindowIndex]);
+    // touches(tempWindows[currentWindowIndex]);
   };
 
   // Overlapping logic
   const checkIfTouching = (a) => {
     let tempArray = [...windows];
+    console.log(a);
     tempArray.forEach((window) => {
       // no horizontal overlap
       if (a.start_x_l >= window.endX || window.start_x_l >= a.endX)
@@ -103,11 +110,19 @@ export default function Canvas() {
   // **Modal Logic**
 
   const handleSubmit = async (id, e) => {
+    console.log(isURL(link));
     let tempArray = windows;
     let tempItem = tempArray.filter((el) => el.id === id);
-    console.log(tempItem);
-    console.log(id);
     tempItem[0].feedId = feedId;
+
+    if (link !== "") {
+      if (isURL(link)) tempItem[0].type = 1;
+      else tempItem[0].type = 0;
+      tempItem[0].content = link;
+    }
+
+    console.log(tempItem);
+
     await fetch("http://localhost:3001/window/createwindow", {
       method: "POST",
       mode: "cors",
@@ -128,6 +143,19 @@ export default function Canvas() {
       })
       .catch((err) => console.error(err));
   };
+
+  function isURL(str) {
+    const pattern = new RegExp(
+      "^(https?:\\/\\/)?" + // protocol
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+        "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+        "(\\#[-a-z\\d_]*)?$",
+      "i"
+    ); // fragment locator
+    return !!pattern.test(str);
+  }
 
   React.useEffect(() => {
     // Creating a new window
@@ -193,6 +221,8 @@ export default function Canvas() {
             textAlign: "center",
           }}
         >
+          {w.content ? <Box>{w.content}</Box> : ""}
+          <Spacer />
           <Button
             onClick={() => {
               setCurrentId(w.id);
@@ -210,7 +240,7 @@ export default function Canvas() {
           <ModalCloseButton />
           <ModalBody>
             <Input
-              placeholder="Link"
+              placeholder="Link/Text"
               onChange={(e) => setLink(e.target.value)}
             />
           </ModalBody>
