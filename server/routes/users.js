@@ -3,11 +3,11 @@ const router = express.Router();
 const { user } = require("../models");
 const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
-const { validateToken } = require("../middleware/authMiddleware");
+// const { validateToken } = require("../middleware/authMiddleware");
 
 const { sign } = require("jsonwebtoken");
 
-cookieParser();
+// cookieParser();
 
 router.post("/register", async (req, res) => {
   const { name, password } = req.body;
@@ -51,8 +51,13 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/validate", validateToken, (req, res) => {
-  res.send(req.user);
+router.post("/logout", (req, res) => {
+  res.status(200).clearCookie("SID").send({ message: "Cookie cleared" });
 });
+
+// Might need it in the future
+// router.get("/validate", validateToken, (req, res) => {
+//   res.send(req.user);
+// });
 
 module.exports = router;

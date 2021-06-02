@@ -15,6 +15,7 @@ import {
   Box,
   Spacer,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 import { useParams } from "react-router-dom";
 
 export default function Canvas() {
@@ -38,6 +39,12 @@ export default function Canvas() {
   const [currentId, setCurrentId] = React.useState();
 
   //**Window logic**
+
+  const deleteWindow = async (id) => {
+    await fetch(`http://localhost:3001/window/delete/${id}`, {
+      method: "DELETE",
+    });
+  };
 
   const getWindows = async () => {
     await fetch("http://localhost:3001/window/windows", {
@@ -71,33 +78,71 @@ export default function Canvas() {
     // touches(tempWindows[currentWindowIndex]);
   };
 
+  // const collisionCheck = () => {
+  //   let tempArray = [...windows];
+  //   if (tempArray.length > 1) {
+  //     if (!overlaps(tempArray[currentWindowIndex], tempArray))
+  //       alert("COLLISION!");
+  //   }
+  // };
+
   // Overlapping logic
-  const checkIfTouching = (a) => {
-    let tempArray = [...windows];
-    console.log(a);
-    tempArray.forEach((window) => {
-      // no horizontal overlap
-      if (a.start_x_l >= window.endX || window.start_x_l >= a.endX)
-        return false;
+  // const checkIfTouching = (a) => {
+  //   let tempArray = [...windows];
+  //   tempArray.forEach((window) => {
+  //     // no horizontal overlap
+  //     if (a.start_x_l >= window.endX || window.start_x_l >= a.endX) {
+  //       return false;
+  //     }
 
-      // no vertical overlap
-      if (a.start_y_l >= window.endY || window.start_y_l >= a.endX)
-        return false;
-      return true;
-    });
-  };
+  //     // no vertical overlap
+  //     if (a.start_y_l >= window.endY || window.start_y_l >= a.endX) {
+  //       return false;
+  //     }
+  //     return true;
+  //   });
+  // };
 
-  function touches(a) {
-    let tempArray = [...windows];
-    tempArray.forEach((window) => {
-      // has horizontal gap
-      if (a.start_x_l > window.endX || window.start_x_l > a.endX) return false;
+  // const som = (a, array) => {
+  //   array.forEach((b) => {
+  //     if (
+  //       a.start_x_l < a.endX &&
+  //       a.endX > b.start_x_l &&
+  //       a.start_y_l > b.endY &&
+  //       a.endY < b.start_y_l
+  //     ) {
+  //       return false;
+  //     }
+  //     return true;
+  //   });
+  // };
 
-      // has vertical gap
-      if (a.start_y_l > window.endY || window.start_y_l > a.endX) return false;
-      return true;
-    });
-  }
+  // function touches(a) {
+  //   let tempArray = [...windows];
+  //   tempArray.forEach((window) => {
+  //     // has horizontal gap
+  //     if (a.start_x_l > window.endX || window.start_x_l > a.endX) {
+  //       return false;
+  //     }
+
+  //     // has vertical gap
+  //     if (a.start_y_l > window.endY || window.start_y_l > a.endX) {
+  //       return false;
+  //     }
+  //     return true;
+  //   });
+  // }
+
+  // const overlaps = (a, rectangles) => {
+  //   rectangles.forEach((b) => {
+  //     return (
+  //       a.start_x_l < b.start_x_l + b.width_l &&
+  //       a.start_x_l + a.width_l > b.start_x_l &&
+  //       a.start_y_l < b.start_y_l + b.height_l &&
+  //       a.start_y_l + a.height_l > b.start_y_l
+  //     );
+  //   });
+  // };
 
   // Reset
   const cleanupListener = () => {
@@ -110,7 +155,6 @@ export default function Canvas() {
   // **Modal Logic**
 
   const handleSubmit = async (id, e) => {
-    console.log(isURL(link));
     let tempArray = windows;
     let tempItem = tempArray.filter((el) => el.id === id);
     tempItem[0].feedId = feedId;
@@ -171,6 +215,8 @@ export default function Canvas() {
             start_y_l: Math.min(startY, thrEndY),
             height_l: Math.abs(thrEndY - startY),
             width_l: Math.abs(thrEndX - startX),
+            endX: endX,
+            endY: endY,
           };
           return newWindows;
         });
@@ -185,76 +231,99 @@ export default function Canvas() {
   }, [startX, startY]);
 
   React.useEffect(() => {
-    console.log("here");
     getWindows();
   }, []);
 
   return (
-    <div
-      id="container"
-      style={{ height: "100vh", position: "relative" }}
-      onMouseDown={(e) => {
-        setStartX(e.clientX);
-        setStartY(e.clientY);
-        setCurrentWindowIndex(windows.length);
-      }}
-      onMouseUp={() => {
-        cleanupListener();
-        setCurrentWindowIndex(undefined);
-      }}
-    >
-      {windows.map((w) => (
-        <Flex
-          direction="column"
-          align="center"
-          justify="center"
-          id={`${w.id}`}
-          key={w.id}
-          style={{
-            position: "absolute",
-            top: `${w.start_y_l}px`,
-            left: `${w.start_x_l}px`,
-            width: `${w.width_l}px`,
-            height: `${w.height_l}px`,
-            border: `1.5px solid black`,
-            borderRadius: "5%",
-            textAlign: "center",
-          }}
-        >
-          {w.content ? <Box>{w.content}</Box> : ""}
-          <Spacer />
-          <Button
-            onClick={() => {
-              setCurrentId(w.id);
-              onOpen();
+    <>
+      {windows.length === 0 ? (
+        <h1 style={{ fontWeight: "bold", textAlign: " center" }}>
+          Drag and Release to create a Window!
+        </h1>
+      ) : (
+        ""
+      )}
+      <div
+        id="container"
+        style={{ height: "100vh", position: "relative" }}
+        onMouseDown={(e) => {
+          setStartX(e.clientX);
+          setStartY(e.clientY);
+          setCurrentWindowIndex(windows.length);
+        }}
+        onMouseUp={() => {
+          // collisionCheck();
+          cleanupListener();
+          setCurrentWindowIndex(undefined);
+        }}
+      >
+        {windows.map((w) => (
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            id={`${w.id}`}
+            key={w.id}
+            style={{
+              position: "absolute",
+              top: `${w.start_y_l}px`,
+              left: `${w.start_x_l}px`,
+              width: `${w.width_l}px`,
+              height: `${w.height_l}px`,
+              border: `1.5px solid black`,
+              borderRadius: "5%",
+              textAlign: "center",
             }}
           >
-            Add
-          </Button>
-        </Flex>
-      ))}
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add a link</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Input
-              placeholder="Link/Text"
-              onChange={(e) => setLink(e.target.value)}
-            />
-          </ModalBody>
+            {w.content ? (
+              <Box width="inherit" fontSize="sm">
+                {w.content}
+              </Box>
+            ) : (
+              ""
+            )}
+            <Spacer />
+            <Box>
+              <Button
+                onClick={() => {
+                  setCurrentId(w.id);
+                  onOpen();
+                }}
+              >
+                Add
+              </Button>
+              <Button onClick={() => deleteWindow(w.id)}>
+                <DeleteIcon />
+              </Button>
+            </Box>
+          </Flex>
+        ))}
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Add a link</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Input
+                placeholder="Link/Text"
+                onChange={(e) => setLink(e.target.value)}
+              />
+            </ModalBody>
 
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button colorScheme="green" onClick={() => handleSubmit(currentId)}>
-              Add
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </div>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={onClose}>
+                Close
+              </Button>
+              <Button
+                colorScheme="green"
+                onClick={() => handleSubmit(currentId)}
+              >
+                Add
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </div>
+    </>
   );
 }

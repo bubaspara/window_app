@@ -26,4 +26,15 @@ router.post("/createfeed", validateToken, async (req, res) => {
   res.status(200).send("Feed Added");
 });
 
+router.delete("/delete/:feedId", async (req, res) => {
+  const { feedId } = req.params;
+  await feed
+    .destroy({
+      where: {
+        id: feedId,
+      },
+    })
+    .then((result) => res.status(200).send("Feed deleted"))
+    .catch((err) => console.error(err));
+});
 module.exports = router;

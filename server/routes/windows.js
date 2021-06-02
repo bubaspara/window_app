@@ -21,9 +21,6 @@ router.post("/createwindow", async (req, res) => {
     req.body[0];
   //   const user = verify(req.body.cookie.split("=")[1], "secret");
 
-  console.log(type, content);
-  console.log(req.body);
-
   if (type || content) {
     await window
       .create({
@@ -49,6 +46,18 @@ router.post("/createwindow", async (req, res) => {
       .catch((err) => console.error(err));
     res.status(200).send("Window Added");
   }
+});
+
+router.delete("/delete/:windowId", async (req, res) => {
+  const { windowId } = req.params;
+  await window
+    .destroy({
+      where: {
+        id: windowId,
+      },
+    })
+    .then((result) => res.status(200).send("Window deleted"))
+    .catch((err) => console.error(err));
 });
 
 module.exports = router;

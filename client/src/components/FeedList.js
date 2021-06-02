@@ -34,7 +34,7 @@ export default function FeedList() {
   }, []);
 
   return (
-    <Flex direction="column" justifyContent="center" textAlign="center">
+    <Flex direction="column" justifyContent="center" align="center">
       {feed.map((feed) => (
         <Feed key={feed.id} feed={feed} id={feed.id} />
       ))}

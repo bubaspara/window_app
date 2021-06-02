@@ -13,7 +13,7 @@ const validateToken = (req, res, next) => {
       return next();
     }
   } catch (err) {
-    return res.send("error");
+    return res.send("Not a valid token");
   }
 };
 
