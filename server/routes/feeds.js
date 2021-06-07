@@ -4,9 +4,16 @@ const { feed } = require("../models");
 const { validateToken } = require("../middleware/authMiddleware");
 const { verify } = require("jsonwebtoken");
 
-router.get("/feeds", async (req, res) => {
+router.post("/feeds", async (req, res) => {
+  let { token } = req.body;
+  const validToken = verify(token, "secret");
   await feed
-    .findAll({ raw: true })
+    .findAll({
+      raw: true,
+      where: {
+        userId: validToken.id,
+      },
+    })
     .then((result) => {
       res.send(result);
     })
@@ -37,4 +44,24 @@ router.delete("/delete/:feedId", async (req, res) => {
     .then((result) => res.status(200).send("Feed deleted"))
     .catch((err) => console.error(err));
 });
+
+router.put("/update/:feedId", async (req, res) => {
+  const { feedId } = req.params;
+  const { updatedValue } = req.body;
+  console.log(req.body);
+  console.log(feedId, updatedValue);
+
+  await feed
+    .findOne({
+      where: {
+        id: feedId,
+      },
+    })
+    .then((result) => {
+      result.name = updatedValue;
+      result.save();
+    })
+    .catch((err) => console.error(err));
+});
+
 module.exports = router;

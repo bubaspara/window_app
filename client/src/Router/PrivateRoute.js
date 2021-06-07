@@ -6,7 +6,6 @@ const PrivateRoute = ({ component: Component, redirectTo, path, ...props }) => {
   const { authState } = useAuth();
 
   // Authentication logic
-  console.log(authState);
   if (!authState) {
     return <Redirect to={redirectTo} />;
   }

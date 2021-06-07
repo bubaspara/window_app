@@ -3,7 +3,6 @@ const router = express.Router();
 const { window } = require("../models");
 
 router.post("/windows", async (req, res) => {
-  console.log("FEED ID", req.body);
   const { feedId } = req.body;
   await window
     .findAll({

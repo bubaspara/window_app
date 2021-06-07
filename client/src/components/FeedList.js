@@ -7,9 +7,16 @@ export default function FeedList() {
   const [feed, setFeed] = React.useState([]);
 
   const getFeed = async () => {
+    const cookieSplit = document.cookie.split("=");
+    const data = {
+      token: cookieSplit[1],
+    };
+
     await fetch("http://localhost:3001/feed/feeds", {
-      method: "GET",
+      method: "POST",
+      credentials: "include",
       mode: "cors",
+      body: JSON.stringify(data),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         "Access-Control-Allow-Origin": "http://localhost:3000",
@@ -17,14 +24,10 @@ export default function FeedList() {
       },
     })
       .then((res) => {
-        if (res.ok) {
-          res
-            .json()
-            .then((response) => {
-              setFeed(response);
-            })
-            .catch((err) => console.error(err));
-        }
+        res
+          .json()
+          .then((result) => setFeed(result))
+          .catch((err) => console.error(err));
       })
       .catch((err) => console.error(err));
   };

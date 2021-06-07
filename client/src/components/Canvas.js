@@ -15,7 +15,7 @@ import {
   Box,
   Spacer,
 } from "@chakra-ui/react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { useParams } from "react-router-dom";
 
 export default function Canvas() {
@@ -30,11 +30,14 @@ export default function Canvas() {
   // Modal
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [link, setLink] = React.useState("");
+  const [newValue, setNewValue] = React.useState();
 
   let { feedId } = useParams();
 
   const thrEndX = useThrottle(endX, 200);
   const thrEndY = useThrottle(endY, 200);
+
+  const container = document.getElementById("root_container");
 
   const [currentId, setCurrentId] = React.useState();
 
@@ -45,6 +48,16 @@ export default function Canvas() {
       method: "DELETE",
     });
   };
+
+  // const editWindow = async (id, newValue) => {
+  //   let data = {
+
+  //   }
+  //   await fetch(`http://localhost:3001/window/edit/${id}`, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(data)
+  //   })
+  // }
 
   const getWindows = async () => {
     await fetch("http://localhost:3001/window/windows", {
@@ -164,8 +177,6 @@ export default function Canvas() {
       else tempItem[0].type = 0;
       tempItem[0].content = link;
     }
-
-    console.log(tempItem);
 
     await fetch("http://localhost:3001/window/createwindow", {
       method: "POST",
@@ -288,6 +299,7 @@ export default function Canvas() {
                 onClick={() => {
                   setCurrentId(w.id);
                   onOpen();
+                  setLink(w.content);
                 }}
               >
                 Add
@@ -305,6 +317,7 @@ export default function Canvas() {
             <ModalCloseButton />
             <ModalBody>
               <Input
+                value={link}
                 placeholder="Link/Text"
                 onChange={(e) => setLink(e.target.value)}
               />
