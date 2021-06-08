@@ -1,0 +1,7 @@
+.window button {
+    display: none
+}
+
+.window:hover button {
+    display: inline-flex
+}

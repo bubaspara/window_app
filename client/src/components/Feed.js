@@ -17,6 +17,8 @@ import {
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { Link } from "react-router-dom";
+import { deleteFeed } from "../services/feed/deletefeed.service";
+import { updateFeed } from "../services/feed/updatefeed.service";
 
 export default function Feed({ feed, id }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -24,39 +26,6 @@ export default function Feed({ feed, id }) {
   const [error, setError] = React.useState("");
 
   const { name } = feed;
-
-  const deleteFeed = async (id) => {
-    await fetch(`http://localhost:3001/feed/delete/${id}`, {
-      method: "DELETE",
-    });
-  };
-
-  const updateFeed = (id, updatedValue) => {
-    let data = {
-      updatedValue: `${updatedValue}`,
-    };
-    if (updatedValue) {
-      setError("");
-      fetch(`http://localhost:3001/feed/update/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        body: JSON.stringify(data),
-        mode: "cors",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          "Access-Control-Allow-Origin": "http://localhost:3000",
-          "Access-Control-Allow-Credentials": true,
-        },
-      })
-        .then((res) => {
-          console.log(res.json());
-        })
-        .catch((err) => console.error(err));
-      onClose();
-    } else {
-      setError(`Can't be empty`);
-    }
-  };
 
   return (
     <>
@@ -107,7 +76,8 @@ export default function Feed({ feed, id }) {
               colorScheme="green"
               onClick={() => {
                 setError("");
-                updateFeed(id, updatedValue);
+                updateFeed(id, updatedValue, setError);
+                onClose();
               }}
             >
               Edit

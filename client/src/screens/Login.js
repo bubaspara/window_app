@@ -10,41 +10,17 @@ import {
   Alert,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+import { LoginService } from "../services/user/login.service";
 import { useHistory } from "react-router";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const history = useHistory();
-
   const [name, setName] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
-  const { setAuthState } = useAuth();
 
-  const login = () => {
-    setError("");
-    const data = { name: name, password: password };
-    fetch("http://localhost:3001/auth/login", {
-      method: "POST",
-      credentials: "include",
-      mode: "cors",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        "Access-Control-Allow-Credentials": true,
-      },
-    })
-      .then((res) => {
-        if (res.ok) {
-          history.push("/");
-          setAuthState(true);
-        } else {
-          setError("Wrong username/password combination");
-        }
-      })
-      .catch((err) => console.error(err));
-  };
+  const history = useHistory();
+  const { setAuthState } = useAuth();
 
   return (
     <Flex width="full" height="100vh" align="center" justifyContent="center">
@@ -71,7 +47,13 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </FormControl>
-          <Button width="full" mt={4} onClick={login}>
+          <Button
+            width="full"
+            mt={4}
+            onClick={() =>
+              LoginService(name, password, history, setAuthState, setError)
+            }
+          >
             Log In
           </Button>
           <p>

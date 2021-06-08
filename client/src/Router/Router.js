@@ -4,7 +4,7 @@ import Login from "../screens/Login";
 import Signup from "../screens/Signup";
 import Home from "../screens/Home";
 import CreateFeed from "../screens/CreateFeed";
-import Canvas from "../components/Canvas";
+import Canvas from "../components/Canvas/Canvas";
 
 import PrivateRoute from "./PrivateRoute";
 
