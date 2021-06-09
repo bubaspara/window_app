@@ -5,3 +5,8 @@
 .window:hover button {
     display: inline-flex
 }
+
+.window {
+    resize: both;
+    overflow: auto
+}

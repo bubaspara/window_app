@@ -14,6 +14,7 @@ import {
   Box,
   Spacer,
 } from "@chakra-ui/react";
+import Draggable from "react-draggable";
 import "./Canvas.css";
 
 import { getWindows } from "../../services/window/getwindows.service";
@@ -21,7 +22,7 @@ import { deleteWindow } from "../../services/window/deletewindow.service";
 import { createwindow } from "../../services/window/createwindow.service";
 
 import { DeleteIcon } from "@chakra-ui/icons";
-import { faExpandAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useParams } from "react-router-dom";
@@ -48,6 +49,7 @@ export default function Canvas() {
   //**Window logic**
 
   const onMouseMove = (e) => {
+    // Sporo, ali ovako dok ne smislim novi nacin provjere
     setEndX(e.clientX);
     setEndY(e.clientY);
     if (currentWindowIndex != null) {
@@ -63,34 +65,20 @@ export default function Canvas() {
     }
   };
 
-  const resize = (e, id) => {
-    window.removeEventListener("mosemove", onMouseMove);
-    setEndX(e.clientX);
-    setEndX(e.clientX);
-    const rect = document.getElementById(id.toString());
-    console.log(rect);
-    if (rect) {
-      console.log("here");
-      rect.style.top = startY + "px";
-      rect.style.left = startX + "px";
-      rect.style.height = Math.abs(e.clientY - startY) + "px";
-      rect.style.width = Math.abs(e.clientX - startX) + "px";
-    }
-  };
-
   // Reset
   const cleanupListener = () => {
     setStartX(undefined);
     setStartY(undefined);
     setEndX(undefined);
     setEndY(undefined);
+    setCurrentWindowIndex(undefined);
   };
 
   // **Modal Logic**
 
   React.useEffect(() => {
     // Creating a new window
-    if (endX !== undefined && endY !== undefined) {
+    if (endX && endY) {
       if (endX !== startX && endY !== startY) {
         setWindows((windows) => {
           const newWindows = [...windows];
@@ -145,61 +133,65 @@ export default function Canvas() {
           setEndX(e.clientX);
           setEndY(e.clientY);
           cleanupListener();
-          setCurrentWindowIndex(undefined);
         }}
       >
         {windows.map((w) => (
-          <Flex
-            className="window"
-            direction="column"
-            align="center"
-            justify="center"
-            id={`${w.id}`}
-            key={w.id}
-            style={{
-              position: "absolute",
-              top: `${w.start_y_l}px`,
-              left: `${w.start_x_l}px`,
-              width: `${w.width_l}px`,
-              height: `${w.height_l}px`,
-              border: `1.5px solid black`,
-              borderRadius: "5%",
-              textAlign: "center",
-            }}
-          >
-            {w.content ? (
-              <Box width="inherit" fontSize="sm">
-                {w.content}
-              </Box>
-            ) : (
-              ""
-            )}
-            <Spacer />
-            <Box>
+          <Draggable handle="#handle">
+            <Flex
+              draggable
+              className="window"
+              direction="column"
+              align="center"
+              justify="center"
+              id={`${w.id}`}
+              key={w.id}
+              style={{
+                position: "absolute",
+                top: `${w.start_y_l}px`,
+                left: `${w.start_x_l}px`,
+                width: `${w.width_l}px`,
+                height: `${w.height_l}px`,
+                border: `1.5px solid black`,
+                borderRadius: "5%",
+                textAlign: "center",
+              }}
+            >
+              {w.content ? (
+                <Box width="inherit" fontSize="sm">
+                  {w.content}
+                </Box>
+              ) : (
+                ""
+              )}
               <Button
-                onClick={() => {
-                  setCurrentId(w.id);
-                  onOpen();
-                  setLink(w.content);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
+                id="handle"
+                onCLick={() =>
+                  window.removeEventListener("mousemove", onMouseMove)
+                }
               >
-                Add
+                <FontAwesomeIcon icon={faArrowsAlt}></FontAwesomeIcon>
               </Button>
-              <Button onClick={() => deleteWindow(w.id)}>
-                <DeleteIcon />
-              </Button>
-              <Button>
-                <FontAwesomeIcon
-                  icon={faExpandAlt}
-                  onMouseDown={(e) => resize(e, w.id)}
-                />
-              </Button>
-            </Box>
-          </Flex>
+              <Spacer />
+              <Box>
+                <Button
+                  onClick={() => {
+                    setCurrentId(w.id);
+                    onOpen();
+                    setLink(w.content);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  Add
+                </Button>
+                <Button onClick={() => deleteWindow(w.id)}>
+                  <DeleteIcon />
+                </Button>
+              </Box>
+            </Flex>
+          </Draggable>
         ))}
       </div>
       <Modal isOpen={isOpen} onClose={onClose}>
