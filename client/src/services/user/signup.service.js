@@ -1,6 +1,6 @@
 export const SingupService = async (data, history, { setSubmitting }) => {
   setSubmitting(true);
-  await fetch("http://localhost:3001/auth/register", {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/auth/register`, {
     method: "POST",
     credentials: "include",
     mode: "cors",

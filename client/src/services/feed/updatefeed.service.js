@@ -4,7 +4,7 @@ export const updateFeed = (id, updatedValue, setError) => {
   };
   if (updatedValue) {
     setError("");
-    fetch(`http://localhost:3001/feed/update/${id}`, {
+    fetch(`${process.env.REACT_APP_BASE_URL}/feed/update/${id}`, {
       method: "PUT",
       credentials: "include",
       body: JSON.stringify(data),

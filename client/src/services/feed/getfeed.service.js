@@ -3,7 +3,7 @@ export const getFeed = async (setFeed) => {
   const data = {
     token: cookieSplit[1],
   };
-  await fetch("http://localhost:3001/feed/feeds", {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/feed/feeds`, {
     method: "POST",
     credentials: "include",
     mode: "cors",

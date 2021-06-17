@@ -1,5 +1,5 @@
 export const getWindows = async (feedId, setWindows) => {
-  await fetch("http://localhost:3001/window/windows", {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/window/windows`, {
     method: "POST",
     credentials: "include",
     mode: "cors",

@@ -1,6 +1,6 @@
 export const CreateFeedService = async (data, history, { setSubmitting }) => {
   setSubmitting(true);
-  await fetch("http://localhost:3001/feed/createfeed", {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/feed/createfeed`, {
     method: "POST",
     credentials: "include",
     mode: "cors",

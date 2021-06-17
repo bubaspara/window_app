@@ -7,7 +7,7 @@ export const LoginService = (
 ) => {
   setError("");
   const data = { name: name, password: password };
-  fetch("http://localhost:3001/auth/login", {
+  fetch(`${process.env.REACT_APP_BASE_URL}/auth/login`, {
     method: "POST",
     credentials: "include",
     mode: "cors",

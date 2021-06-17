@@ -1,5 +1,5 @@
 export const deleteWindow = async (id) => {
-  await fetch(`http://localhost:3001/window/delete/${id}`, {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/window/delete/${id}`, {
     method: "DELETE",
   });
 };

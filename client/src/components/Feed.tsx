@@ -19,11 +19,12 @@ import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { Link } from "react-router-dom";
 import { deleteFeed } from "../services/feed/deletefeed.service";
 import { updateFeed } from "../services/feed/updatefeed.service";
+import {IFeedProps} from '../interfaces/Interfaces'
 
-export default function Feed({ feed, id }) {
+export default function Feed({ feed, id }: IFeedProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [updatedValue, setUpdatedValue] = React.useState();
-  const [error, setError] = React.useState("");
+  const [updatedValue, setUpdatedValue] = React.useState<string>();
+  const [error, setError] = React.useState<string>("");
 
   const { name } = feed;
 

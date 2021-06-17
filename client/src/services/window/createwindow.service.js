@@ -12,7 +12,7 @@ export const createwindow = async (id, windows, feedId, link) => {
     tempItem[0].content = link;
   }
 
-  await fetch("http://localhost:3001/window/createwindow", {
+  await fetch(`${process.env.REACT_APP_BASE_URL}/window/createwindow`, {
     method: "POST",
     mode: "cors",
     credentials: "include",
