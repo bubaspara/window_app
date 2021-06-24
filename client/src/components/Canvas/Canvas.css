@@ -1,12 +1,12 @@
-.window button {
+.draggable button {
     display: none
 }
 
-.window:hover button {
+.draggable:hover button {
     display: inline-flex
 }
 
-.window {
+.draggable {
     resize: both;
     overflow: auto
 }

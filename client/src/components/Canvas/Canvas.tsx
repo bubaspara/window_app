@@ -18,7 +18,7 @@ import { getWindows } from "../../services/window/getwindows.service";
 import { createwindow } from "../../services/window/createwindow.service";
 
 import { useParams } from "react-router-dom";
-import Rectangle from "../Rectangle";
+import Rectangle from "../Rectangle/Rectangle";
 
 export default function Canvas() {
   const ref = React.useRef(null) as any;
@@ -45,9 +45,9 @@ export default function Canvas() {
   //**Window logic**
 
   const onMouseMove = (e: MouseEvent) => {
-    // Sporo, ali ovako dok ne smislim novi nacin provjere
-    // setEndX(e.clientX);
-    // setEndY(e.clientY);
+    // Sporo, ali ovako dok ne smislim novi nacin provjere (rijesava problem stvaranja na klik)
+    setEndX(e.clientX);
+    setEndY(e.clientY);
     if (currentWindowIndex != null) {
       const a = document.getElementById(currentWindowIndex.toString());
       if (startX !== e.clientX && startY !== e.clientY) {
@@ -108,47 +108,51 @@ export default function Canvas() {
           setCurrentWindowIndex(windows.length);
         }}
         onMouseUp={(e) => {
-          console.log(isEnter, isDragging);
-          if (endX && endY && startX && startY && isEnter) {
-            setWindows((windows) => {
-              const newWindows = [...windows];
-              if (currentWindowIndex !== undefined && startX && startY) {
-                if (!newWindows[currentWindowIndex]) {
-                  newWindows.push({
-                    id: Math.floor(Math.random() * (101 - 1)),
-                    start_x_l: undefined,
-                    start_y_l: undefined,
-                    height_l: undefined,
-                    width_l: undefined,
-                    endX: undefined,
-                    endY: undefined,
-                  });
-                  newWindows[currentWindowIndex] = {
-                    id: newWindows.length,
-                    start_x_l: Math.min(startX, endX),
-                    start_y_l: Math.min(startY, endY),
-                    height_l: Math.abs(endY - startY),
-                    width_l: Math.abs(endX - startX),
-                    endX: endX,
-                    endY: endY,
-                  };
+          if (endX !== startX && endY !== startY) {
+            if (endX && endY && startX && startY && isEnter) {
+              setWindows((windows) => {
+                const newWindows = [...windows];
+                if (currentWindowIndex !== undefined && startX && startY) {
+                  if (!newWindows[currentWindowIndex]) {
+                    newWindows.push({
+                      id: Math.floor(Math.random() * (101 - 1)),
+                      start_x_l: undefined,
+                      start_y_l: undefined,
+                      height_l: undefined,
+                      width_l: undefined,
+                      endX: undefined,
+                      endY: undefined,
+                    });
+                    newWindows[currentWindowIndex] = {
+                      id: newWindows.length,
+                      start_x_l: Math.min(startX, endX),
+                      start_y_l: Math.min(startY, endY),
+                      height_l: Math.abs(endY - startY),
+                      width_l: Math.abs(endX - startX),
+                      endX: endX,
+                      endY: endY,
+                    };
+                  }
                 }
-              }
-              return newWindows;
-            });
+                return newWindows;
+              });
+            }
           }
           window.removeEventListener("mousemove", onMouseMove);
           cleanupListener();
         }}
       >
-        {windows.map((w) => (
+        {windows.map((w, idx) => (
           <Rectangle
+            key={idx}
             w={w}
             setIsEnter={setIsEnter}
             onOpen={onOpen}
             setCurrentId={setCurrentId}
             setLink={setLink}
             setIsDragging={setIsDragging}
+            isDragging={isDragging}
+            onMouseMove={onMouseMove}
           />
         ))}
       </div>

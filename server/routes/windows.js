@@ -20,6 +20,8 @@ router.post("/createwindow", async (req, res) => {
     req.body[0];
   //   const user = verify(req.body.cookie.split("=")[1], "secret");
 
+  console.log(req.body[0]);
+
   if (type || content) {
     await window
       .create({
