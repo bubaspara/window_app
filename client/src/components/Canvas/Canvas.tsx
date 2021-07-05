@@ -29,10 +29,9 @@ export default function Canvas() {
   const [endX, setEndX] = React.useState<number | undefined>();
   const [endY, setEndY] = React.useState<number | undefined>();
   const [windows, setWindows] = React.useState<IWindows[]>([]);
-  const [currentWindowIndex, setCurrentWindowIndex] =
-    React.useState<number | undefined>();
-  const [isDragging, setIsDragging] = React.useState<boolean>(false);
-  const [isEnter, setIsEnter] = React.useState<boolean>(false);
+  const [currentWindowIndex, setCurrentWindowIndex] = React.useState<
+    number | undefined
+  >();
 
   // Modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -70,8 +69,6 @@ export default function Canvas() {
     setEndX(undefined);
     setEndY(undefined);
     setCurrentWindowIndex(undefined);
-    setIsEnter(false);
-    setIsDragging(false);
   };
 
   // **Modal Logic**
@@ -100,7 +97,6 @@ export default function Canvas() {
         ref={ref}
         style={{ height: "100vh", position: "relative" }}
         onMouseDown={(e) => {
-          setIsEnter(true);
           setStartX(e.clientX);
           setStartY(e.clientY);
           setEndX(e.clientX);
@@ -108,8 +104,9 @@ export default function Canvas() {
           setCurrentWindowIndex(windows.length);
         }}
         onMouseUp={(e) => {
+          // Preko React-a al ne bi trebalo
           if (endX !== startX && endY !== startY) {
-            if (endX && endY && startX && startY && isEnter) {
+            if (endX && endY && startX && startY) {
               setWindows((windows) => {
                 const newWindows = [...windows];
                 if (currentWindowIndex !== undefined && startX && startY) {
@@ -146,12 +143,9 @@ export default function Canvas() {
           <Rectangle
             key={idx}
             w={w}
-            setIsEnter={setIsEnter}
             onOpen={onOpen}
             setCurrentId={setCurrentId}
             setLink={setLink}
-            setIsDragging={setIsDragging}
-            isDragging={isDragging}
             onMouseMove={onMouseMove}
           />
         ))}

@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 import * as React from "react";
 import { Flex, Button, Box, Spacer } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -11,25 +12,19 @@ import "./Rectangle.css";
 
 export interface IAppProps {
   w: IWindows;
-  setIsEnter: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentId: React.Dispatch<React.SetStateAction<number | undefined>>;
   onOpen: () => void;
   setLink: React.Dispatch<React.SetStateAction<string>>;
-  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  isDragging: boolean;
   onMouseMove: (e: MouseEvent) => void;
 }
 
 export default function Rectangle({
   w,
-  setIsEnter,
   setCurrentId,
   onOpen,
   setLink,
-}: // setIsDragging,
-// isDragging,
-// onMouseMove,
-IAppProps) {
+  onMouseMove,
+}: IAppProps) {
   React.useEffect(() => {
     let draggableElements = document.getElementsByClassName("draggable");
     for (var i = 0; i < draggableElements.length; i++) {
@@ -42,12 +37,11 @@ IAppProps) {
       pos2 = 0,
       pos3 = 0,
       pos4 = 0;
-    // if (document.getElementById("draggableButton")) {
-    //   document.getElementById("draggableButton")!.onmousedown = dragMouseDown;
-    // }
-    elmnt.onmousedown = dragMouseDown;
+    // document.getElementById("draggableButton")!.onmousedown = dragMouseDown;
+    // elmnt.onmousedown = dragMouseDown;
 
     function dragMouseDown(e: MouseEvent) {
+      console.log(window.innerWidth, window.outerWidth);
       e = e || window.event;
       pos3 = e.clientX;
       pos4 = e.clientY;
@@ -73,81 +67,108 @@ IAppProps) {
   }
 
   // Resize function
-  // const mouseDownHandler = (
-  //   e: React.MouseEvent<Element, MouseEvent>,
-  //   id: number,
-  //   win: IWindows
-  // ) => {
-  //   let elem = document.getElementById(id.toString());
-
-  //   let x = 0;
-  //   let y = 0;
-
-  //   let w = 0;
-  //   let h = 0;
-
-  //   if (win.start_x_l && win.start_y_l) {
-  //     x = Number(win.start_x_l);
-  //     y = Number(win.start_y_l);
-  //   }
-  //   if (elem) {
-  //     const styles = window.getComputedStyle(elem);
-  //     console.log(styles);
-  //     w = parseInt(styles.width, 10);
-  //     h = parseInt(styles.height, 10);
-
-  //     document.addEventListener("mousemove", () =>
-  //       mouseMoveHandler(e, elem, w, h, x, y)
-  //     );
-
-  //     document.addEventListener("mouseup", () =>
-  //       mouseUpHandler(e, elem, w, h, x, y)
-  //     );
-  //   }
+  // const initResize = (e: MouseEvent) => {
+  //   window.addEventListener("mousemove", Resize, false);
+  //   window.addEventListener("mouseup", stopResize, false);
   // };
 
-  // const mouseMoveHandler = (
-  //   e: React.MouseEvent<Element, MouseEvent>,
-  //   elem: any,
-  //   w: number,
-  //   h: number,
-  //   x: number,
-  //   y: number
-  // ) => {
-  //   let dx = e.clientX - x;
-  //   let dy = e.clientY - y;
-  //   console.log(dx, dy);
-  //   if (elem) {
-  //     elem.style.width = `${w + dx}px`;
-  //     elem.style.height = `${h + dy}px`;
-  //   }
+  // const Resize = (e: MouseEvent) => {
+  //   element.style.width = e.clientX - element.offsetLeft + "px";
+  //   element.style.height = e.clientY - element.offsetTop + "px";
   // };
 
-  // const mouseUpHandler = (
-  //   e: React.MouseEvent<Element, MouseEvent>,
-  //   elem: any,
-  //   w: number,
-  //   h: number,
-  //   x: number,
-  //   y: number
-  // ) => {
-  //   document.addEventListener("mousemove", () =>
-  //     mouseMoveHandler(e, elem, w, h, x, y)
-  //   );
-  //   document.addEventListener("mouseup", () =>
-  //     mouseUpHandler(e, elem, w, h, x, y)
-  //   );
+  // const stopResize = () => {
+  //   window.removeEventListener("mousemove", Resize, false);
+  //   window.removeEventListener("mouseup", stopResize, false);
   // };
+
+  const makeResizableDiv = (id: number) => {
+    const elem = document.getElementById(id.toString());
+    const resizers = document.querySelectorAll(".resizer");
+    const minimum_size = 20;
+    let original_width = 0;
+    let original_height = 0;
+    let original_x = 0;
+    let original_y = 0;
+    let original_mouse_x = 0;
+    let original_mouse_y = 0;
+
+    for (let i = 0; i < resizers.length; i++) {
+      const currentResizer = resizers[i];
+      currentResizer.addEventListener("mousedown", function (e: any) {
+        e.preventDefault();
+        if (elem) {
+          original_width = parseFloat(
+            getComputedStyle(elem, null)
+              .getPropertyValue("width")
+              .replace("px", "")
+          );
+          original_height = parseFloat(
+            getComputedStyle(elem, null)
+              .getPropertyValue("height")
+              .replace("px", "")
+          );
+          original_x = elem.getBoundingClientRect().left;
+          original_y = elem.getBoundingClientRect().top;
+          original_mouse_x = e.pageX;
+          original_mouse_y = e.pageY;
+        }
+
+        window.addEventListener("mousemove", () =>
+          resize(e, currentResizer, elem)
+        );
+        window.addEventListener("mouseup", () =>
+          stopResize(e, currentResizer, elem)
+        );
+      });
+    }
+
+    const resize = (e: any, currentResizer: Element, elem: any) => {
+      if (currentResizer.classList.contains("right")) {
+        const width = original_width + (e.pageX - original_mouse_x);
+        console.log(width);
+        if (width > minimum_size) {
+          elem.style.width = width + "px";
+        }
+      } else if (currentResizer.classList.contains("left")) {
+        const width = original_width - (e.pageX - original_mouse_x);
+        if (width > minimum_size) {
+          elem.style.width = width + "px";
+          elem.style.left = original_x + (e.pageX - original_mouse_x) + "px";
+        }
+      } else if (currentResizer.classList.contains("top")) {
+        const height = original_height - (e.pageY - original_mouse_y);
+        if (height > minimum_size) {
+          elem.style.height = height + "px";
+          elem.style.top = original_y + (e.pageY - original_mouse_y) + "px";
+        }
+      } else if (currentResizer.classList.contains("bottom")) {
+        const height = original_height + (e.pageY - original_mouse_y);
+        if (height > minimum_size) {
+          elem.style.height = height + "px";
+        }
+      }
+    };
+
+    const stopResize = (e: any, currentResizer: Element, elem: any) => {
+      window.removeEventListener("mousemove", () =>
+        resize(e, currentResizer, elem)
+      );
+      e.stopPropagation();
+    };
+  };
 
   return (
     <Flex
-      onMouseOver={() => setIsEnter(true)}
-      className="draggable resizer"
+      className="draggable"
       direction="column"
       align="center"
       justify="center"
       id={`${w.id}`}
       key={w.id}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
       style={{
         position: "absolute",
         top: `${w.start_y_l}px`,
@@ -164,6 +185,32 @@ IAppProps) {
       <Button id="draggableButton">
         <FontAwesomeIcon icon={faArrowsAlt}></FontAwesomeIcon>
       </Button>
+      <Box className="resizers">
+        <Box
+          className="resizer top"
+          onMouseDown={(e) => {
+            makeResizableDiv(w.id);
+          }}
+        ></Box>
+        <Box
+          className="resizer right"
+          onMouseDown={(e) => {
+            makeResizableDiv(w.id);
+          }}
+        ></Box>
+        <Box
+          className="resizer bottom"
+          onMouseDown={(e) => {
+            makeResizableDiv(w.id);
+          }}
+        ></Box>
+        <Box
+          className="resizer left"
+          onMouseDown={(e) => {
+            makeResizableDiv(w.id);
+          }}
+        ></Box>
+      </Box>
       <Spacer />
       <Box>
         <Button
