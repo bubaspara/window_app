@@ -30,7 +30,14 @@ export default function Login() {
         </Box>
         {error ? <Alert status="error">{error}</Alert> : ""}
         <Box my={4} textAlign="left">
-          <FormControl>
+          <FormControl
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                console.log("here");
+                LoginService(name, password, history, setAuthState, setError);
+              }
+            }}
+          >
             <FormLabel>Name</FormLabel>
             <Input
               placeholder="Name"

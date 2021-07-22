@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 import * as React from "react";
-import { Flex, Button, Box, Spacer } from "@chakra-ui/react";
+import { Flex, Button, Box, Spacer, calc } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
@@ -25,23 +25,25 @@ export default function Rectangle({
   setLink,
   onMouseMove,
 }: IAppProps) {
-  React.useEffect(() => {
-    let draggableElements = document.getElementsByClassName("draggable");
-    for (var i = 0; i < draggableElements.length; i++) {
-      dragElement(draggableElements[i]);
-    }
-  });
   // Drag function
-  function dragElement(elmnt: any) {
+  function dragElement(e: any, id: number) {
+    const elmnt = document.getElementById(id.toString());
+    console.log(elmnt);
     let pos1 = 0,
       pos2 = 0,
       pos3 = 0,
       pos4 = 0;
-    // document.getElementById("draggableButton")!.onmousedown = dragMouseDown;
-    // elmnt.onmousedown = dragMouseDown;
 
-    function dragMouseDown(e: MouseEvent) {
-      console.log(window.innerWidth, window.outerWidth);
+    // DODAVANJE FUNKCIONALNOSTI DRAGGANJA NA SVAKI BOTUN
+    let dragBtns = document.getElementsByClassName("draggableButton");
+    for (let i = 0; i < dragBtns.length; i++) {
+      dragBtns[i].addEventListener("mousedown", () => dragMouseDown(e));
+    }
+    console.log(dragBtns);
+
+    // document.getElementById("draggableButton")!.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e: any) {
       e = e || window.event;
       pos3 = e.clientX;
       pos4 = e.clientY;
@@ -50,14 +52,16 @@ export default function Rectangle({
       return false;
     }
 
-    function elementDrag(e: MouseEvent) {
+    function elementDrag(e: any) {
       e = e || window.event;
       pos1 = pos3 - e.clientX;
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
-      elmnt.style.top = elmnt.offsetTop - pos2 + "px";
-      elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+      if (elmnt) {
+        elmnt.style.top = elmnt.offsetTop - pos2 + "px";
+        elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+      }
     }
 
     function closeDragElement() {
@@ -67,94 +71,100 @@ export default function Rectangle({
   }
 
   // Resize function
-  // const initResize = (e: MouseEvent) => {
-  //   window.addEventListener("mousemove", Resize, false);
-  //   window.addEventListener("mouseup", stopResize, false);
-  // };
 
-  // const Resize = (e: MouseEvent) => {
-  //   element.style.width = e.clientX - element.offsetLeft + "px";
-  //   element.style.height = e.clientY - element.offsetTop + "px";
-  // };
+  const initResize = (e: any, id: number, w: IWindows, direction: string) => {
+    const start_x = Number(w.start_x_l);
+    const start_y = Number(w.start_y_l);
 
-  // const stopResize = () => {
-  //   window.removeEventListener("mousemove", Resize, false);
-  //   window.removeEventListener("mouseup", stopResize, false);
-  // };
-
-  const makeResizableDiv = (id: number) => {
-    const elem = document.getElementById(id.toString());
-    const resizers = document.querySelectorAll(".resizer");
-    const minimum_size = 20;
-    let original_width = 0;
-    let original_height = 0;
-    let original_x = 0;
-    let original_y = 0;
-    let original_mouse_x = 0;
-    let original_mouse_y = 0;
-
-    for (let i = 0; i < resizers.length; i++) {
-      const currentResizer = resizers[i];
-      currentResizer.addEventListener("mousedown", function (e: any) {
-        e.preventDefault();
-        if (elem) {
-          original_width = parseFloat(
-            getComputedStyle(elem, null)
-              .getPropertyValue("width")
-              .replace("px", "")
-          );
-          original_height = parseFloat(
-            getComputedStyle(elem, null)
-              .getPropertyValue("height")
-              .replace("px", "")
-          );
-          original_x = elem.getBoundingClientRect().left;
-          original_y = elem.getBoundingClientRect().top;
-          original_mouse_x = e.pageX;
-          original_mouse_y = e.pageY;
-        }
-
-        window.addEventListener("mousemove", () =>
-          resize(e, currentResizer, elem)
-        );
-        window.addEventListener("mouseup", () =>
-          stopResize(e, currentResizer, elem)
-        );
-      });
+    const element = document.getElementById(id.toString());
+    if (start_x && start_y) {
+      window.addEventListener(
+        "mousemove",
+        () => Resize(e, element, start_x, start_y, direction),
+        false
+      );
+      window.addEventListener(
+        "mouseup",
+        () => stopResize(e, element, start_x, start_y, direction),
+        false
+      );
     }
+    const Resize = (
+      e: any,
+      element: any,
+      start_x: number,
+      start_y: number,
+      direction: string
+    ) => {
+      const orgHeight = parseFloat(
+        getComputedStyle(element, null)
+          .getPropertyValue("height")
+          .replace("px", "")
+      );
+      const orgWidth = parseFloat(
+        getComputedStyle(element, null)
+          .getPropertyValue("height")
+          .replace("px", "")
+      );
 
-    const resize = (e: any, currentResizer: Element, elem: any) => {
-      if (currentResizer.classList.contains("right")) {
-        const width = original_width + (e.pageX - original_mouse_x);
-        console.log(width);
-        if (width > minimum_size) {
-          elem.style.width = width + "px";
+      const orgTop = parseFloat(
+        getComputedStyle(element, null)
+          .getPropertyValue("top")
+          .replace("px", "")
+      );
+
+      const orgLeft = parseFloat(
+        getComputedStyle(element, null)
+          .getPropertyValue("left")
+          .replace("px", "")
+      );
+      // Popraviti
+      if (direction === "top") {
+        if (e.clientY > start_y) {
+          element.style.top = orgTop - (e.clientY - start_y) + "px";
+          element.style.height = orgHeight + (e.clientY - start_y) + "px";
+        } else if (e.clientY < start_y) {
+          element.style.top = orgTop + (e.clientY - start_y) + "px";
+          element.style.height = orgHeight - (e.clientY - start_y) + "px";
         }
-      } else if (currentResizer.classList.contains("left")) {
-        const width = original_width - (e.pageX - original_mouse_x);
-        if (width > minimum_size) {
-          elem.style.width = width + "px";
-          elem.style.left = original_x + (e.pageX - original_mouse_x) + "px";
+      } else if (direction === "bottom") {
+        if (e.clientY > start_y) {
+          element.style.height = orgHeight - (e.clientY - start_y) + "px";
+        } else if (e.clientY < start_y) {
+          element.style.height = orgHeight + (e.clientY - start_y) + "px";
         }
-      } else if (currentResizer.classList.contains("top")) {
-        const height = original_height - (e.pageY - original_mouse_y);
-        if (height > minimum_size) {
-          elem.style.height = height + "px";
-          elem.style.top = original_y + (e.pageY - original_mouse_y) + "px";
+      } else if (direction === "left") {
+        if (e.clientX > start_x) {
+          element.style.left = orgLeft + (e.clientX - start_x) + "px";
+          element.style.width = orgWidth - (e.clientX - start_x) + "px";
+        } else if (e.clientX < start_x) {
+          element.style.left = orgLeft - (e.clientX - start_x) + "px";
+          element.style.width = orgWidth + (e.clientX - start_x) + "px";
         }
-      } else if (currentResizer.classList.contains("bottom")) {
-        const height = original_height + (e.pageY - original_mouse_y);
-        if (height > minimum_size) {
-          elem.style.height = height + "px";
+      } else if (direction === "right") {
+        if (e.clientX > start_x) {
+          element.style.width = orgWidth - (e.clientX - start_x) + "px";
+        } else if (e.clientX < start_x) {
+          element.style.width = orgWidth + (e.clientX - start_x) + "px";
         }
       }
     };
 
-    const stopResize = (e: any, currentResizer: Element, elem: any) => {
-      window.removeEventListener("mousemove", () =>
-        resize(e, currentResizer, elem)
-      );
+    const stopResize = (
+      e: any,
+      element: any,
+      start_x: number,
+      start_y: number,
+      direction: string
+    ) => {
+      e.preventDefault();
       e.stopPropagation();
+      window.removeEventListener("mousemove", () =>
+        Resize(e, element, start_x, start_y, direction)
+      );
+      window.removeEventListener("mouseup", () =>
+        stopResize(e, element, start_x, start_y, direction)
+      );
     };
   };
 
@@ -181,33 +191,44 @@ export default function Rectangle({
       }}
     >
       {w.type === 1 ? <img src={w.content} alt="img" /> : w.content}
-      {/* Drag-a se klikom na cijeli Flex, ali cilj je da se ta funkcionalnost prebaci na ovaj botun */}
-      <Button id="draggableButton">
+
+      <Button
+        className="draggableButton"
+        onMouseDown={(e) => dragElement(e, w.id)}
+      >
         <FontAwesomeIcon icon={faArrowsAlt}></FontAwesomeIcon>
       </Button>
       <Box className="resizers">
         <Box
           className="resizer top"
           onMouseDown={(e) => {
-            makeResizableDiv(w.id);
+            initResize(e, w.id, w, "top");
+            e.preventDefault();
+            e.stopPropagation();
           }}
         ></Box>
         <Box
           className="resizer right"
           onMouseDown={(e) => {
-            makeResizableDiv(w.id);
+            initResize(e, w.id, w, "right");
+            e.preventDefault();
+            e.stopPropagation();
           }}
         ></Box>
         <Box
           className="resizer bottom"
           onMouseDown={(e) => {
-            makeResizableDiv(w.id);
+            initResize(e, w.id, w, "bottom");
+            e.preventDefault();
+            e.stopPropagation();
           }}
         ></Box>
         <Box
           className="resizer left"
           onMouseDown={(e) => {
-            makeResizableDiv(w.id);
+            initResize(e, w.id, w, "left");
+            e.preventDefault();
+            e.stopPropagation();
           }}
         ></Box>
       </Box>
@@ -231,13 +252,6 @@ export default function Rectangle({
         <Button onClick={() => deleteWindow(w.id)}>
           <DeleteIcon />
         </Button>
-        {/* <Button
-          onMouseDown={(e: React.MouseEvent<Element, MouseEvent>) =>
-            mouseDownHandler(e, w.id, w)
-          }
-        >
-          X
-        </Button> */}
       </Box>
     </Flex>
   );

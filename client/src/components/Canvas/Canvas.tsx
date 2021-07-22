@@ -44,9 +44,6 @@ export default function Canvas() {
   //**Window logic**
 
   const onMouseMove = (e: MouseEvent) => {
-    // Sporo, ali ovako dok ne smislim novi nacin provjere (rijesava problem stvaranja na klik)
-    setEndX(e.clientX);
-    setEndY(e.clientY);
     if (currentWindowIndex != null) {
       const a = document.getElementById(currentWindowIndex.toString());
       if (startX !== e.clientX && startY !== e.clientY) {
@@ -104,9 +101,8 @@ export default function Canvas() {
           setCurrentWindowIndex(windows.length);
         }}
         onMouseUp={(e) => {
-          // Preko React-a al ne bi trebalo
-          if (endX !== startX && endY !== startY) {
-            if (endX && endY && startX && startY) {
+          if (endX && endY && startX && startY) {
+            if (e.clientY - startY > 50 || e.clientX - startX > 50) {
               setWindows((windows) => {
                 const newWindows = [...windows];
                 if (currentWindowIndex !== undefined && startX && startY) {
@@ -122,12 +118,12 @@ export default function Canvas() {
                     });
                     newWindows[currentWindowIndex] = {
                       id: newWindows.length,
-                      start_x_l: Math.min(startX, endX),
-                      start_y_l: Math.min(startY, endY),
-                      height_l: Math.abs(endY - startY),
-                      width_l: Math.abs(endX - startX),
-                      endX: endX,
-                      endY: endY,
+                      start_x_l: Math.min(startX, e.clientX),
+                      start_y_l: Math.min(startY, e.clientY),
+                      height_l: Math.abs(e.clientY - startY),
+                      width_l: Math.abs(e.clientX - startX),
+                      endX: e.clientX,
+                      endY: e.clientY,
                     };
                   }
                 }

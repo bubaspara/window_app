@@ -1,12 +1,7 @@
-.draggable button {
+/* .draggable button {
     display: none
-}
+} */
 
-.draggable:hover button {
+/* .draggable:hover button {
     display: inline-flex
-}
-
-.draggable {
-    resize: both;
-    overflow: auto
-}
+} */
