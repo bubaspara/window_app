@@ -118,6 +118,8 @@ export default function Rectangle({
           .getPropertyValue("left")
           .replace("px", "")
       );
+      const b = element.getBoundingClientRect();
+      const minSize = 50;
       // Popraviti
       if (direction === "top") {
         if (e.clientY > start_y) {
