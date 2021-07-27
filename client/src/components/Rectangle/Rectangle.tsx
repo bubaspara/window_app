@@ -28,18 +28,15 @@ export default function Rectangle({
   // Drag function
   function dragElement(e: any, id: number) {
     const elmnt = document.getElementById(id.toString());
-    console.log(elmnt);
     let pos1 = 0,
       pos2 = 0,
       pos3 = 0,
       pos4 = 0;
 
-    // DODAVANJE FUNKCIONALNOSTI DRAGGANJA NA SVAKI BOTUN
     let dragBtns = document.getElementsByClassName("draggableButton");
     for (let i = 0; i < dragBtns.length; i++) {
       dragBtns[i].addEventListener("mousedown", () => dragMouseDown(e));
     }
-    console.log(dragBtns);
 
     // document.getElementById("draggableButton")!.onmousedown = dragMouseDown;
 
@@ -70,103 +67,82 @@ export default function Rectangle({
     }
   }
 
+  // Global
+
+  let MARGINS = 4;
+  let onRightEdge: any, onBottomEdge: any, onLeftEdge: any, onTopEdge: any;
+
   // Resize function
 
   const initResize = (e: any, id: number, w: IWindows, direction: string) => {
-    const start_x = Number(w.start_x_l);
-    const start_y = Number(w.start_y_l);
+    const clickedX = e.clientX;
+    const clickedY = e.clientY;
 
+    // Mogu preko eventa
     const element = document.getElementById(id.toString());
-    if (start_x && start_y) {
-      window.addEventListener(
-        "mousemove",
-        () => Resize(e, element, start_x, start_y, direction),
-        false
-      );
-      window.addEventListener(
-        "mouseup",
-        () => stopResize(e, element, start_x, start_y, direction),
-        false
-      );
-    }
-    const Resize = (
-      e: any,
-      element: any,
-      start_x: number,
-      start_y: number,
-      direction: string
-    ) => {
-      const orgHeight = parseFloat(
-        getComputedStyle(element, null)
-          .getPropertyValue("height")
-          .replace("px", "")
-      );
-      const orgWidth = parseFloat(
-        getComputedStyle(element, null)
-          .getPropertyValue("height")
-          .replace("px", "")
-      );
 
-      const orgTop = parseFloat(
-        getComputedStyle(element, null)
-          .getPropertyValue("top")
-          .replace("px", "")
-      );
-
-      const orgLeft = parseFloat(
-        getComputedStyle(element, null)
-          .getPropertyValue("left")
-          .replace("px", "")
-      );
-      const b = element.getBoundingClientRect();
-      const minSize = 50;
-      // Popraviti
-      if (direction === "top") {
-        if (e.clientY > start_y) {
-          element.style.top = orgTop - (e.clientY - start_y) + "px";
-          element.style.height = orgHeight + (e.clientY - start_y) + "px";
-        } else if (e.clientY < start_y) {
-          element.style.top = orgTop + (e.clientY - start_y) + "px";
-          element.style.height = orgHeight - (e.clientY - start_y) + "px";
-        }
-      } else if (direction === "bottom") {
-        if (e.clientY > start_y) {
-          element.style.height = orgHeight - (e.clientY - start_y) + "px";
-        } else if (e.clientY < start_y) {
-          element.style.height = orgHeight + (e.clientY - start_y) + "px";
-        }
-      } else if (direction === "left") {
-        if (e.clientX > start_x) {
-          element.style.left = orgLeft + (e.clientX - start_x) + "px";
-          element.style.width = orgWidth - (e.clientX - start_x) + "px";
-        } else if (e.clientX < start_x) {
-          element.style.left = orgLeft - (e.clientX - start_x) + "px";
-          element.style.width = orgWidth + (e.clientX - start_x) + "px";
-        }
-      } else if (direction === "right") {
-        if (e.clientX > start_x) {
-          element.style.width = orgWidth - (e.clientX - start_x) + "px";
-        } else if (e.clientX < start_x) {
-          element.style.width = orgWidth + (e.clientX - start_x) + "px";
-        }
-      }
+    const onMouseMove = (e: any) => {
+      Resize(e, element, clickedX, clickedY, direction);
+    };
+    const onMouseUp = (e: any) => {
+      stopResize(e, element, clickedX, clickedY, direction);
     };
 
     const stopResize = (
       e: any,
       element: any,
-      start_x: number,
-      start_y: number,
+      clickedX: number,
+      clickedY: number,
       direction: string
     ) => {
       e.preventDefault();
       e.stopPropagation();
-      window.removeEventListener("mousemove", () =>
-        Resize(e, element, start_x, start_y, direction)
-      );
-      window.removeEventListener("mouseup", () =>
-        stopResize(e, element, start_x, start_y, direction)
-      );
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
+    const Resize = (
+      e: any,
+      element: any,
+      clickedX: number,
+      clickedY: number,
+      direction: string
+    ) => {
+      const b = element.getBoundingClientRect();
+      const minSize = 50;
+      let x = e.clientX - b.left;
+      let y = e.clientY - b.top;
+      // onTopEdge = y < MARGINS;
+      // onLeftEdge = x < MARGINS;
+      // onRightEdge = x >= b.width - MARGINS;
+      // onBottomEdge = y >= b.height - MARGINS;
+
+      // let isResizing = onRightEdge || onBottomEdge || onTopEdge || onLeftEdge;
+
+      // Istu referencu za f-ju
+      if (direction === "right") {
+        element.style.width = Math.max(x, minSize) + "px";
+      }
+      if (direction === "bottom") {
+        element.style.height = Math.max(y, minSize) + "px";
+      }
+      if (direction === "left") {
+        let newWidth = b.left - e.clientX + b.width;
+        if (newWidth > minSize) {
+          element.style.width = newWidth + "px";
+          element.style.left = e.clientX + "px";
+        }
+      }
+      if (direction === "top") {
+        let newHeight = b.top - e.clientY + b.height;
+        if (newHeight > minSize) {
+          element.style.height = newHeight + "px";
+          element.style.top = e.clientY + "px";
+        }
+      }
     };
   };
 
@@ -200,7 +176,7 @@ export default function Rectangle({
       >
         <FontAwesomeIcon icon={faArrowsAlt}></FontAwesomeIcon>
       </Button>
-      <Box className="resizers">
+      <Box className="resizers" onMouseDown={(e) => e.stopPropagation()}>
         <Box
           className="resizer top"
           onMouseDown={(e) => {
