@@ -68,35 +68,40 @@ export default function Rectangle({
   }
 
   // Global
+  let fullscreenMargins = -10;
+  let margins = 10;
+  let rightScreenEdge = window.innerWidth - fullscreenMargins;
+  let bottomScreenEdge = window.innerWidth - fullscreenMargins;
 
-  let MARGINS = 4;
-  let onRightEdge: any, onBottomEdge: any, onLeftEdge: any, onTopEdge: any;
+  // Border snapping logic
+  const borderLogic = (element: any) => {
+    const b = element.getBoundingClientRect();
+    if (b.top < margins) {
+      element.style.top = 0 + "px";
+    } else if (b.left < margins) {
+      element.style.left = 0 + "px";
+    } else if (b.right > rightScreenEdge) {
+      element.style.width = window.innerWidth / 2 + "px";
+      return true;
+    } else if (b.bottom > bottomScreenEdge) {
+      element.style.top = window.innerHeight / 2 + "px";
+      return true;
+    }
+  };
 
   // Resize function
-
-  const initResize = (e: any, id: number, w: IWindows, direction: string) => {
-    const clickedX = e.clientX;
-    const clickedY = e.clientY;
-
+  const initResize = (e: any, id: number, direction: string) => {
     // Mogu preko eventa
     const element = document.getElementById(id.toString());
 
     const onMouseMove = (e: any) => {
-      Resize(e, element, clickedX, clickedY, direction);
+      Resize(e, element, direction);
     };
-    const onMouseUp = (e: any) => {
-      stopResize(e, element, clickedX, clickedY, direction);
+    const onMouseUp = () => {
+      stopResize();
     };
 
-    const stopResize = (
-      e: any,
-      element: any,
-      clickedX: number,
-      clickedY: number,
-      direction: string
-    ) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const stopResize = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
@@ -104,25 +109,12 @@ export default function Rectangle({
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
 
-    const Resize = (
-      e: any,
-      element: any,
-      clickedX: number,
-      clickedY: number,
-      direction: string
-    ) => {
+    const Resize = (e: any, element: any, direction: string) => {
       const b = element.getBoundingClientRect();
       const minSize = 50;
       let x = e.clientX - b.left;
       let y = e.clientY - b.top;
-      // onTopEdge = y < MARGINS;
-      // onLeftEdge = x < MARGINS;
-      // onRightEdge = x >= b.width - MARGINS;
-      // onBottomEdge = y >= b.height - MARGINS;
 
-      // let isResizing = onRightEdge || onBottomEdge || onTopEdge || onLeftEdge;
-
-      // Istu referencu za f-ju
       if (direction === "right") {
         element.style.width = Math.max(x, minSize) + "px";
       }
@@ -143,6 +135,7 @@ export default function Rectangle({
           element.style.top = e.clientY + "px";
         }
       }
+      borderLogic(element);
     };
   };
 
@@ -176,37 +169,29 @@ export default function Rectangle({
       >
         <FontAwesomeIcon icon={faArrowsAlt}></FontAwesomeIcon>
       </Button>
-      <Box className="resizers" onMouseDown={(e) => e.stopPropagation()}>
+      <Box className="resizers">
         <Box
           className="resizer top"
           onMouseDown={(e) => {
-            initResize(e, w.id, w, "top");
-            e.preventDefault();
-            e.stopPropagation();
+            initResize(e, w.id, "top");
           }}
         ></Box>
         <Box
           className="resizer right"
           onMouseDown={(e) => {
-            initResize(e, w.id, w, "right");
-            e.preventDefault();
-            e.stopPropagation();
+            initResize(e, w.id, "right");
           }}
         ></Box>
         <Box
           className="resizer bottom"
           onMouseDown={(e) => {
-            initResize(e, w.id, w, "bottom");
-            e.preventDefault();
-            e.stopPropagation();
+            initResize(e, w.id, "bottom");
           }}
         ></Box>
         <Box
           className="resizer left"
           onMouseDown={(e) => {
-            initResize(e, w.id, w, "left");
-            e.preventDefault();
-            e.stopPropagation();
+            initResize(e, w.id, "left");
           }}
         ></Box>
       </Box>

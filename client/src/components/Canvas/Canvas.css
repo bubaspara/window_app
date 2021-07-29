@@ -2,6 +2,6 @@
     display: none
 }
 
-/* .draggable:hover button {
+.draggable:hover button {
     display: inline-flex
-} */
+}
